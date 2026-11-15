@@ -1,0 +1,14 @@
+node_modules/
+dist/
+client/dist/
+server/dist/
+.data/
+server/.data/
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/
