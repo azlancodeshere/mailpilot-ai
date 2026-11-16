@@ -28,10 +28,6 @@ const extractToken = (req: Request): string | undefined => {
   return undefined
 }
 
-/**
- * Verifies the access token (cookie or Authorization header) and attaches
- * the authenticated user to the request.
- */
 export const verifyJWT = async (
   req: Request,
   _res: Response,

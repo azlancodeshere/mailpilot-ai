@@ -35,10 +35,6 @@ export const listConversationsSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 })
 
-export const conversationIdParamSchema = z.object({
-  id: z.string().min(1, "Conversation id is required"),
-})
-
 export const updateConversationSchema = z
   .object({
     classification: z.enum(REPLY_CLASSIFICATIONS).optional(),
@@ -56,7 +52,7 @@ export const updateConversationSchema = z
 
 export const sendMessageSchema = z.object({
   body: z.string().trim().min(1, "Reply body cannot be empty").max(10000),
-  /** Required when sending an AI-generated draft: the draft must be reviewed first. */
+
   approved: z.boolean().optional(),
   source: z.enum(["ai", "manual"]).default("manual"),
 })

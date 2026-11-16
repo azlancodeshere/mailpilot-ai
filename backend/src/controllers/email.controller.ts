@@ -47,7 +47,6 @@ export const listConversationsHandler = async (req: Request, res: Response): Pro
   res.status(200).json(new ApiResponse(200, result, "Conversations fetched"))
 }
 
-/** Minimal client-facing list: only conversations waiting on the client. */
 export const listClientInbox = async (req: Request, res: Response): Promise<void> => {
   const query = req.query as unknown as ListConversationsQuery
 
@@ -83,10 +82,6 @@ export const getConversation = async (req: Request, res: Response): Promise<void
   res.status(200).json(new ApiResponse(200, { conversation, messages }, "Conversation fetched"))
 }
 
-/**
- * Updates flags, status, client actions and — importantly — lets the
- * assistant manually correct the AI classification.
- */
 export const updateConversationHandler = async (req: Request, res: Response): Promise<void> => {
   const conversation = await findOwnedConversation(req.params.id, req.user!._id)
 
@@ -141,7 +136,6 @@ export const sendReply = async (req: Request, res: Response): Promise<void> => {
   const { body, approved, source } = req.body as SendMessageInput
   const conversation = await findOwnedConversation(req.params.id, req.user!._id)
 
-  // AI drafts must always be reviewed before they can go out.
   if (source === "ai" && !approved) {
     throw new ApiError(400, "AI-generated replies must be reviewed and approved before sending")
   }
@@ -164,7 +158,6 @@ export const sendReply = async (req: Request, res: Response): Promise<void> => {
   )
 }
 
-/** Simulates a newly received email arriving in the connected mailbox. */
 export const ingestEmailHandler = async (req: Request, res: Response): Promise<void> => {
   const input = req.body as IngestEmailInput
 

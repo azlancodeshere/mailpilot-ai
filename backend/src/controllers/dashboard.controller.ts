@@ -3,11 +3,8 @@ import Account from "../models/account.model"
 import Conversation from "../models/conversation.model"
 import Email from "../models/email.model"
 import { ApiResponse } from "../utils/ApiResponse"
-import { countSegments, listConversations } from "../services/email.service"
+import { countSegments } from "../services/email.service"
 
-/**
- * One request that answers "what is happening in the inbox right now".
- */
 export const getStats = async (req: Request, res: Response): Promise<void> => {
   const ownerId = req.user!._id
 
@@ -69,19 +66,4 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
       upcomingMeetings: meetings,
     })
   )
-}
-
-/** Convenience endpoint: dashboard "needs my attention" preview list. */
-export const getNeedsAttention = async (req: Request, res: Response): Promise<void> => {
-  const query = req.query as unknown as { limit?: string }
-  const limit = Math.min(Number(query.limit) || 10, 30)
-
-  const result = await listConversations({
-    ownerId: req.user!._id,
-    segment: "action_required",
-    page: 1,
-    limit,
-  })
-
-  res.status(200).json(new ApiResponse(200, result, "Emails requiring attention fetched"))
 }

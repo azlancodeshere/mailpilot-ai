@@ -25,7 +25,6 @@ const getClient = (): GoogleGenAI | null => {
   return client
 }
 
-/** Calls Gemini with a JSON response mime type; returns null when unavailable. */
 export const runJsonPrompt = async (prompt: string): Promise<unknown | null> => {
   const ai = getClient()
   if (!ai) return null
@@ -51,17 +50,13 @@ export const runJsonPrompt = async (prompt: string): Promise<unknown | null> => 
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Classification                                                      */
-/* ------------------------------------------------------------------ */
-
 export interface MessageContext {
   from: string
   direction: "inbound" | "outbound"
   body: string
 }
 
-export interface ClassificationContext {
+interface ClassificationContext {
   subject: string
   messages: MessageContext[]
   clientName?: string
@@ -87,7 +82,7 @@ const classificationSchema = z.object({
     .optional(),
 })
 
-export interface ClassificationResult {
+interface ClassificationResult {
   classification: ReplyClassification
   reason: string
   confidence: number
@@ -158,11 +153,7 @@ const detectLabels = (subject: string, body: string): ConversationLabel[] => {
   return labels
 }
 
-/**
- * Deterministic fallback used when the LLM is unavailable, so the prototype
- * still demonstrates automatic classification end-to-end.
- */
-export const classifyWithRules = (ctx: ClassificationContext): ClassificationResult => {
+const classifyWithRules = (ctx: ClassificationContext): ClassificationResult => {
   const text = `${ctx.subject}\n${ctx.messages.map((m) => m.body).join("\n")}`
   const lower = text.toLowerCase()
 
@@ -170,7 +161,6 @@ export const classifyWithRules = (ctx: ClassificationContext): ClassificationRes
   let clientScore = (text.match(new RegExp(KEYWORDS.client.source, "gi")) || []).length
   let noReplyScore = (text.match(new RegExp(KEYWORDS.noReply.source, "gi")) || []).length
 
-  // A direct request addressed to a named person usually needs the client.
   if (clientScore > 0 && /\b(dear|hi|hello|attention)\b/.test(lower)) {
     clientScore += 1
   }
@@ -197,7 +187,6 @@ export const classifyWithRules = (ctx: ClassificationContext): ClassificationRes
 
   const margin = top.score - second.score
 
-  // Conflicting ownership signals are flagged for the assistant to review.
   if (second.score > 0 && margin <= 1) {
     return {
       classification: "needs_review",
@@ -228,10 +217,6 @@ export const classifyWithRules = (ctx: ClassificationContext): ClassificationRes
   }
 }
 
-/**
- * Classifies a conversation, preferring the Gemini LLM and falling back to
- * deterministic rules so the flow never breaks in the prototype.
- */
 export const classifyConversation = async (
   ctx: ClassificationContext
 ): Promise<ClassificationResult> => {
@@ -252,10 +237,6 @@ export const classifyConversation = async (
 
   return classifyWithRules(ctx)
 }
-
-/* ------------------------------------------------------------------ */
-/* Ask AI about the inbox                                              */
-/* ------------------------------------------------------------------ */
 
 export interface InboxSnapshotItem {
   id: string

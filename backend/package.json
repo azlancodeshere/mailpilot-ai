@@ -1,16 +1,23 @@
 {
-  "name": "backend",
+  "name": "mailpilot-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-  "dev": "tsx watch src/server.ts",
-  "build": "tsc",
-  "start": "node dist/server.js"
-},
-  "keywords": [],
+  "description": "Express + MongoDB API for MailPilot AI — simulated Gmail/Outlook mailboxes, rule-based and Gemini-powered reply-responsibility classification.",
+  "main": "dist/server.js",
+  "keywords": [
+    "email",
+    "assistant",
+    "ai",
+    "classification",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
   "dependencies": {
     "@google/genai": "^3.3.0",
     "bcryptjs": "^3.0.3",
@@ -28,7 +35,6 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.6",
-    "nodemon": "^3.1.14",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

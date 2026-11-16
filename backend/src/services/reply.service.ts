@@ -3,9 +3,9 @@ import { runJsonPrompt } from "./ai.service"
 import type { MessageContext } from "./ai.service"
 import type { ConversationLabel, ReplyClassification } from "../models/conversation.model"
 
-export type ReplyTone = "professional" | "friendly" | "formal"
+type ReplyTone = "professional" | "friendly" | "formal"
 
-export interface DraftReplyResult {
+interface DraftReplyResult {
   body: string
   source: "ai" | "rules"
 }
@@ -17,12 +17,7 @@ const firstName = (nameOrEmail: string): string => {
   return cleaned.split(" ")[0] || "there"
 }
 
-const subjectLine = (subject: string): string =>
-  /^(re|fwd|fw)\s*:/i.test(subject) ? subject : `Re: ${subject}`
-
 const draftWithRules = (params: {
-  subject: string
-  messages: MessageContext[]
   labels: ConversationLabel[]
   tone?: ReplyTone
   instructions?: string
@@ -30,21 +25,16 @@ const draftWithRules = (params: {
   clientName?: string
   classification?: ReplyClassification
 }): DraftReplyResult => {
-  const { subject, labels, tone = "professional", instructions, senderName, clientName, classification } = params
+  const { labels, tone = "professional", instructions, senderName, clientName, classification } = params
   const greeting =
     tone === "formal"
       ? `Dear ${senderName || "Sir/Madam"},`
       : `Hi ${firstName(senderName || "there")},`
 
-  const opener =
-    tone === "friendly"
-      ? `Thanks for your note about "${subject.replace(/^(re|fwd)\s*:\s*/i, "")}" — good to hear from you.`
-      : `Thank you for your email regarding "${subject.replace(/^(re|fwd)\s*:\s*/i, "")}".`
-
   let body: string
 
   if (classification === "client_reply") {
-    // The reply acknowledges and hands over to the client for the real answer.
+
     body = `Thanks for reaching out. I've passed this straight to ${firstName(
       clientName || "the principal"
     )}, who will come back to you personally with a response.`
@@ -71,10 +61,6 @@ const draftWithRules = (params: {
   }
 }
 
-/**
- * Prepares an AI draft reply. Every draft is returned for human review and is
- * never sent automatically.
- */
 export const draftReply = async (params: {
   subject: string
   messages: MessageContext[]
@@ -131,8 +117,6 @@ ${history}`
   }
 
   return draftWithRules({
-    subject,
-    messages,
     labels,
     tone,
     instructions,

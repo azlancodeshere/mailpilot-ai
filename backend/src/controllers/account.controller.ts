@@ -4,7 +4,7 @@ import Conversation from "../models/conversation.model"
 import Email from "../models/email.model"
 import { ApiError } from "../utils/ApiError"
 import { ApiResponse } from "../utils/ApiResponse"
-import { seedSampleData, countSegments } from "../services/email.service"
+import { seedSampleData } from "../services/email.service"
 import type { ConnectAccountInput } from "../validators/email.validator"
 
 export const listAccounts = async (req: Request, res: Response): Promise<void> => {
@@ -13,10 +13,6 @@ export const listAccounts = async (req: Request, res: Response): Promise<void> =
   res.status(200).json(new ApiResponse(200, { accounts }, "Connected accounts fetched"))
 }
 
-/**
- * Simulated OAuth connection: creates the account and seeds a realistic
- * sample inbox so the dashboard is usable immediately in the prototype.
- */
 export const connectAccount = async (req: Request, res: Response): Promise<void> => {
   const { provider, email, displayName } = req.body as ConnectAccountInput
   const owner = req.user!._id
@@ -36,7 +32,7 @@ export const connectAccount = async (req: Request, res: Response): Promise<void>
     lastSyncMessage: "Authorization complete (simulated OAuth)",
   })
 
-  const { seeded } = await seedSampleData(owner, account._id.toString())
+  const { seeded } = await seedSampleData(account._id.toString())
 
   res.status(201).json(
     new ApiResponse(
@@ -54,23 +50,6 @@ export const connectAccount = async (req: Request, res: Response): Promise<void>
   )
 }
 
-export const getAccount = async (req: Request, res: Response): Promise<void> => {
-  const account = await Account.findOne({ _id: req.params.id, owner: req.user!._id })
-
-  if (!account) throw new ApiError(404, "Connected account not found")
-
-  const [conversations, unreadMessages, segments] = await Promise.all([
-    Conversation.countDocuments({ account: account._id, isArchived: false }),
-    Email.countDocuments({ account: account._id, direction: "inbound", isRead: false }),
-    countSegments(req.user!._id, account._id.toString()),
-  ])
-
-  res.status(200).json(
-    new ApiResponse(200, { account, stats: { conversations, unreadMessages, segments } })
-  )
-}
-
-/** Simulated inbox synchronization with a visible syncing state. */
 export const syncAccount = async (req: Request, res: Response): Promise<void> => {
   const account = await Account.findOne({ _id: req.params.id, owner: req.user!._id })
 

@@ -37,7 +37,7 @@ export interface IConversation extends Document {
   subjectKey: string
   participants: IEmailParticipant[]
   messages: Types.ObjectId[]
-  /** AI reply-responsibility classification. */
+
   classification: ReplyClassification
   classificationReason: string
   classificationConfidence: number
@@ -47,7 +47,7 @@ export interface IConversation extends Document {
   keyPoints: string[]
   importantDates: IImportantDate[]
   status: ConversationStatus
-  /** Client-facing decision: handled personally or handed back to the assistant. */
+
   clientAction: ClientAction
   isImportant: boolean
   isRead: boolean

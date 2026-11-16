@@ -29,7 +29,6 @@ const findOwnedConversation = async (
   return conversation
 }
 
-/** AI-generated summary, stored on the conversation for quick scanning. */
 export const summarize = async (req: Request, res: Response): Promise<void> => {
   const conversation = await findOwnedConversation(req.params.id, req.user!._id)
 
@@ -46,7 +45,6 @@ export const summarize = async (req: Request, res: Response): Promise<void> => {
   )
 }
 
-/** Re-runs reply-responsibility classification on demand. */
 export const reclassify = async (req: Request, res: Response): Promise<void> => {
   const conversation = await findOwnedConversation(req.params.id, req.user!._id)
 
@@ -69,7 +67,6 @@ export const reclassify = async (req: Request, res: Response): Promise<void> => 
   )
 }
 
-/** Prepares a draft reply that must be reviewed before sending. */
 export const draft = async (req: Request, res: Response): Promise<void> => {
   const { tone, instructions } = req.body as DraftReplyInput
   const conversation = await findOwnedConversation(req.params.id, req.user!._id)
@@ -99,7 +96,6 @@ export const draft = async (req: Request, res: Response): Promise<void> => {
   )
 }
 
-/** Natural-language questions about the inbox or a specific conversation. */
 export const ask = async (req: Request, res: Response): Promise<void> => {
   const { question, conversationId } = req.body as AskInput
 

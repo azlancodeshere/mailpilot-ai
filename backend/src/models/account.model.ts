@@ -11,7 +11,7 @@ export interface IAccount extends Document {
   displayName?: string
   status: AccountStatus
   isConnected: boolean
-  /** "simulated" while the prototype uses mock OAuth + sample data. */
+
   connectionMode: "simulated" | "live"
   lastSyncedAt?: Date
   lastSyncMessage?: string

@@ -2,7 +2,6 @@ import { Router } from "express"
 import {
   listAccounts,
   connectAccount,
-  getAccount,
   syncAccount,
   disconnectAccount,
 } from "../controllers/account.controller"
@@ -16,7 +15,6 @@ router.use(verifyJWT)
 
 router.get("/", listAccounts)
 router.post("/connect", validate(connectAccountSchema), connectAccount)
-router.get("/:id", getAccount)
 router.post("/:id/sync", syncAccount)
 router.delete("/:id", disconnectAccount)
 

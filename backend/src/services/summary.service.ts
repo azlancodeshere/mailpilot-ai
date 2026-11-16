@@ -2,12 +2,12 @@ import { z } from "zod"
 import { runJsonPrompt } from "./ai.service"
 import type { MessageContext } from "./ai.service"
 
-export interface ImportantDate {
+interface ImportantDate {
   label: string
   date?: Date
 }
 
-export interface ConversationSummary {
+interface ConversationSummary {
   summary: string
   keyPoints: string[]
   importantDates: ImportantDate[]
@@ -74,9 +74,6 @@ const summarizeWithRules = (subject: string, messages: MessageContext[]): Conver
   }
 }
 
-/**
- * AI summary of a full conversation (LLM first, deterministic fallback after).
- */
 export const summarizeConversation = async (
   subject: string,
   messages: MessageContext[]

@@ -1,16 +1,11 @@
 import type { QueryFilter, Types } from "mongoose"
 import Conversation, {
   type IConversation,
-  type ReplyClassification,
 } from "../models/conversation.model"
 import Email, { type IEmail } from "../models/email.model"
 import Account from "../models/account.model"
 import { ApiError } from "../utils/ApiError"
 import { classifyConversation, type MessageContext } from "./ai.service"
-
-/* ------------------------------------------------------------------ */
-/* Segments                                                            */
-/* ------------------------------------------------------------------ */
 
 export const SEGMENT_META = [
   { key: "all", label: "All conversations", description: "Everything across the connected inbox" },
@@ -28,7 +23,7 @@ export const SEGMENT_META = [
 
 export type SegmentKey = (typeof SEGMENT_META)[number]["key"]
 
-export const segmentFilter = (segment?: SegmentKey): QueryFilter<IConversation> => {
+const segmentFilter = (segment?: SegmentKey): QueryFilter<IConversation> => {
   switch (segment) {
     case "assistant":
       return { classification: "assistant_reply" }
@@ -55,13 +50,9 @@ export const segmentFilter = (segment?: SegmentKey): QueryFilter<IConversation> 
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
-export const normalizeSubject = (subject: string): string =>
+const normalizeSubject = (subject: string): string =>
   subject.replace(/^\s*(re|fwd|fw)\s*:\s*/gi, "").trim().toLowerCase()
 
 export const loadMessages = async (conversation: IConversation): Promise<IEmail[]> => {
@@ -91,13 +82,8 @@ export const applyClassification = (
   if (conversation.isImportant) labels.add("important")
   conversation.labels = [...labels] as IConversation["labels"]
 
-  // Important keywords in new mail raise the flag; it is never lowered automatically.
   if (result.labels.includes("important")) conversation.isImportant = true
 }
-
-/* ------------------------------------------------------------------ */
-/* Queries                                                             */
-/* ------------------------------------------------------------------ */
 
 export interface ListConversationsParams {
   ownerId: Types.ObjectId | string
@@ -106,7 +92,7 @@ export interface ListConversationsParams {
   status?: IConversation["status"]
   q?: string
   includeArchived?: boolean
-  /** Client-facing view: only conversations waiting on the client. */
+
   clientView?: boolean
   page: number
   limit: number
@@ -167,7 +153,6 @@ export const getConversationDetail = async (
 
   const messages = await loadMessages(conversation)
 
-  // Opening a conversation clears its unread state.
   if (conversation.unreadCount > 0 || !conversation.isRead) {
     conversation.unreadCount = 0
     conversation.isRead = true
@@ -201,10 +186,6 @@ export const countSegments = async (
   return Object.fromEntries(entries.map((entry) => [entry.key, entry.count]))
 }
 
-/* ------------------------------------------------------------------ */
-/* Ingestion (simulated incoming email)                                */
-/* ------------------------------------------------------------------ */
-
 export interface IngestEmailInput {
   accountId: string
   from: { name?: string; email: string }
@@ -214,10 +195,6 @@ export interface IngestEmailInput {
   receivedAt?: Date | string
 }
 
-/**
- * Simulates a newly received email: stores it, updates/creates the
- * conversation and re-runs the AI reply-responsibility classification.
- */
 export const ingestEmail = async (input: IngestEmailInput): Promise<IConversation> => {
   const account = await Account.findById(input.accountId)
   if (!account) throw new ApiError(404, "Connected email account not found")
@@ -279,7 +256,6 @@ export const ingestEmail = async (input: IngestEmailInput): Promise<IConversatio
 
   await conversation.save()
 
-  // AI considers content + full history each time a new message arrives.
   const messages = await loadMessages(conversation)
   const classification = await classifyConversation({
     subject: conversation.subject,
@@ -292,10 +268,6 @@ export const ingestEmail = async (input: IngestEmailInput): Promise<IConversatio
 
   return conversation
 }
-
-/* ------------------------------------------------------------------ */
-/* Outbound reply                                                      */
-/* ------------------------------------------------------------------ */
 
 export const sendReplyMessage = async (
   conversation: IConversation,
@@ -333,10 +305,6 @@ export const sendReplyMessage = async (
 
   return email
 }
-
-/* ------------------------------------------------------------------ */
-/* Sample inbox (simulated Gmail/Outlook connection)                   */
-/* ------------------------------------------------------------------ */
 
 interface SampleThread {
   from: { name: string; email: string }
@@ -419,14 +387,7 @@ const SAMPLE_THREADS: SampleThread[] = [
   },
 ]
 
-/**
- * Seeds a realistic inbox when a (simulated) mailbox is connected for the
- * first time, so the dashboard is never empty during the demo.
- */
-export const seedSampleData = async (
-  ownerId: Types.ObjectId | string,
-  accountId: string
-): Promise<{ seeded: number }> => {
+export const seedSampleData = async (accountId: string): Promise<{ seeded: number }> => {
   const existing = await Conversation.countDocuments({ account: accountId })
   if (existing > 0) return { seeded: 0 }
 
@@ -445,7 +406,6 @@ export const seedSampleData = async (
     }
   }
 
-  // Give the demo inbox some realistic variation.
   await Conversation.updateMany(
     { account: accountId, classification: "no_reply", labels: "travel" },
     { isRead: true, unreadCount: 0 }

@@ -7,14 +7,11 @@ export interface IUser extends Document {
   email: string
   password: string
   refreshToken?: string
-  googleId?:string
   role: "assistant" | "client"
   isPasswordCorrect(entered: string): Promise<boolean>
   generateAccessToken(): string
   generateRefreshToken(): string
 }
-
-export type User = IUser;
 
 const userSchema = new Schema<IUser>(
   {
@@ -29,26 +26,16 @@ const userSchema = new Schema<IUser>(
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"],
     },
 
-
     password: { type: String, required: true, minlength: 8 },
-
 
     refreshToken: { type: String, select: false },
 
-    googleId:{
-    type:String,
-    unique:true,
-    sparse:true
-
-
-  },
-
-  role: {
-  type: String,
-  enum: ["assistant", "client"],
-  default: "assistant",
-  required: true,
-},
+    role: {
+      type: String,
+      enum: ["assistant", "client"],
+      default: "assistant",
+      required: true,
+    },
   },
   { timestamps: true }
 )

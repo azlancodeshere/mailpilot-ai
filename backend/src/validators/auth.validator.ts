@@ -27,6 +27,3 @@ export const updateAccountSchema = z
     message: "At least one field is required",
   })
 
-export type RegisterInput = z.infer<typeof registerSchema>
-export type LoginInput = z.infer<typeof loginSchema>
-export type UpdateAccountInput = z.infer<typeof updateAccountSchema>
