@@ -1,32 +1,21 @@
-# React + TypeScript + Vite
+# MailPilot AI — frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React 19 + TypeScript + Vite client for MailPilot AI. See the [project README](../README.md) for setup, demo credentials and the overall architecture.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm run dev      # Vite dev server on http://localhost:5173 (proxies /api → :5000)
+npm run build    # tsc -b, then vite build
+npm run lint     # oxlint
+npm run preview  # serve the production build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Where things live
+
+- `src/pages/` — one file per route (Welcome, Login, Signup, Onboarding, Dashboard, Inbox, Conversation, AskAI, Accounts, ClientPortal, NotFound).
+- `src/components/` — `AppShell` (sidebar/topbar/navigation), conversation and classification presentation, and the shared primitives in `ui.tsx` (buttons, fields, modal, toast, avatar, states).
+- `src/lib/api.ts` — typed axios client: token storage, refresh-on-401 interceptor, and one typed method per backend endpoint. `src/lib/types.ts` mirrors the backend response shapes.
+- `src/lib/format.ts` — date/relative-time formatting, avatar initials and the classification/segment label maps.
+- `src/store/auth.ts` — Zustand store for the current user and session bootstrap.
+- `src/index.css` — design tokens (CSS custom properties) and the base layer; `src/App.css` — component styles.
