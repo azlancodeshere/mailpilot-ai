@@ -108,7 +108,10 @@ export const updateConversationHandler = async (req: Request, res: Response): Pr
   }
 
   if (isArchived !== undefined) conversation.isArchived = isArchived
-  if (status !== undefined) conversation.status = status
+  if (status !== undefined) {
+    conversation.status = status
+    if (status === "completed") conversation.clientAction = "handled"
+  }
 
   if (clientAction !== undefined) {
     conversation.clientAction = clientAction

@@ -6,6 +6,7 @@ import Email, { type IEmail } from "../models/email.model"
 import Account from "../models/account.model"
 import { ApiError } from "../utils/ApiError"
 import { classifyConversation, type MessageContext } from "./ai.service"
+import { summarizeConversation } from "./summary.service"
 
 export const SEGMENT_META = [
   { key: "all", label: "All conversations", description: "Everything across the connected inbox" },
@@ -256,15 +257,17 @@ export const ingestEmail = async (input: IngestEmailInput): Promise<IConversatio
 
   await conversation.save()
 
-  const messages = await loadMessages(conversation)
-  const classification = await classifyConversation({
-    subject: conversation.subject,
-    messages: toMessageContext(messages),
-    clientName: account.displayName,
-  })
+  if (conversation.classificationSource !== "manual") {
+    const messages = await loadMessages(conversation)
+    const classification = await classifyConversation({
+      subject: conversation.subject,
+      messages: toMessageContext(messages),
+      clientName: account.displayName,
+    })
 
-  applyClassification(conversation, classification)
-  await conversation.save()
+    applyClassification(conversation, classification)
+    await conversation.save()
+  }
 
   return conversation
 }
@@ -301,6 +304,17 @@ export const sendReplyMessage = async (
   }
   conversation.lastMessageAt = sentAt
 
+  await conversation.save()
+
+  const messages = await loadMessages(conversation)
+  const account = await Account.findById(conversation.account)
+  const classification = await classifyConversation({
+    subject: conversation.subject,
+    messages: toMessageContext(messages),
+    clientName: account?.displayName,
+  })
+
+  applyClassification(conversation, classification)
   await conversation.save()
 
   return email
@@ -438,6 +452,20 @@ export const seedSampleData = async (accountId: string): Promise<{ seeded: numbe
       direction: "outbound",
     }
     await invoice.save()
+  }
+
+  const highlights = await Conversation.find({
+    account: accountId,
+    $or: [{ labels: "meeting" }, { classification: "client_reply" }],
+  })
+
+  for (const item of highlights) {
+    const messages = await loadMessages(item)
+    const summary = await summarizeConversation(item.subject, toMessageContext(messages))
+    item.aiSummary = summary.summary
+    item.keyPoints = summary.keyPoints
+    item.importantDates = summary.importantDates
+    await item.save()
   }
 
   return { seeded: SAMPLE_THREADS.length }
