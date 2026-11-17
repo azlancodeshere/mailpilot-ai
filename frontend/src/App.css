@@ -1981,6 +1981,8 @@
 .composer-tools .field { width: auto; }
 .composer-tools select { min-width: 170px; }
 
+.composer-instructions { font-size: 13px; padding: 8px 12px; }
+
 .ai-draft-banner {
   display: flex;
   align-items: center;

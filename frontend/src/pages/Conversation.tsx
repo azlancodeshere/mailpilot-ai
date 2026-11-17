@@ -70,6 +70,7 @@ export default function Conversation() {
   const [draftSource, setDraftSource] = useState<"ai" | "rules" | "manual" | null>(null)
   const [drafting, setDrafting] = useState(false)
   const [tone, setTone] = useState<"professional" | "friendly" | "formal">("professional")
+  const [instructions, setInstructions] = useState("")
   const [approved, setApproved] = useState(false)
   const [sending, setSending] = useState(false)
 
@@ -214,7 +215,10 @@ export default function Conversation() {
     if (!conversation) return
     setDrafting(true)
     try {
-      const result = await aiApi.draft(conversation._id, { tone })
+      const result = await aiApi.draft(conversation._id, {
+        tone,
+        instructions: instructions.trim() || undefined,
+      })
       setDraft(result.body)
       setDraftSource(result.source)
       setApproved(false)
@@ -438,6 +442,14 @@ export default function Conversation() {
                 </Button>
               </div>
             </div>
+
+            <input
+              className="input composer-instructions"
+              value={instructions}
+              onChange={(event) => setInstructions(event.target.value)}
+              placeholder="Optional instructions for the AI draft (e.g. mention the 14th, keep it brief)…"
+              aria-label="Instructions for AI draft"
+            />
 
             {draftSource === "ai" || draftSource === "rules" ? (
               <div className="ai-draft-banner animate-fade-in">

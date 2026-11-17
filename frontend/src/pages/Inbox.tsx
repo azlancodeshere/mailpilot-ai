@@ -89,6 +89,7 @@ export default function Inbox() {
 
   useEffect(() => {
     const run = async () => {
+      setLoading(true)
       try {
         const [list, segmentResult] = await Promise.all([
           emailsApi.list({ ...listParams, page: 1 }),
