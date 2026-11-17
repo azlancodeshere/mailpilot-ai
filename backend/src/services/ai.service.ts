@@ -8,7 +8,7 @@ import type {
   ConversationLabel,
 } from "../models/conversation.model"
 
-const MODEL = "gemini-2.5-flash"
+const MODEL = "gemini-3.5-flash-lite"
 
 let client: GoogleGenAI | null = null
 
@@ -18,36 +18,47 @@ const getClient = (): GoogleGenAI | null => {
   if (!client) {
     client = new GoogleGenAI({
       apiKey: env.GEMINI_API_KEY,
-      httpOptions: { timeout: 8000 },
+      httpOptions: { timeout: 15000 },
     })
   }
 
   return client
 }
 
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+
 export const runJsonPrompt = async (prompt: string): Promise<unknown | null> => {
   const ai = getClient()
   if (!ai) return null
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.2,
-      },
-    })
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: MODEL,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      })
 
-    const text = response.text?.trim()
-    if (!text) return null
+      const text = response.text?.trim()
+      if (!text) return null
 
-    return JSON.parse(text)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.warn(`[AI] Gemini call failed, using rule-based fallback: ${message}`)
-    return null
+      return JSON.parse(text)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (attempt < 2) {
+        await sleep(400 * (attempt + 1))
+        continue
+      }
+      console.warn(`[AI] Gemini call failed, using rule-based fallback: ${message}`)
+      return null
+    }
   }
+
+  return null
 }
 
 export interface MessageContext {
@@ -226,11 +237,19 @@ export const classifyConversation = async (
 
   if (parsed.success) {
     const data = parsed.data
+    const confidence = data.confidence ?? 0.8
+    const lowConfidence = confidence < 0.6
+    const labels = (data.labels?.length
+      ? data.labels
+      : detectLabels(ctx.subject, ctx.messages[0]?.body || "")) as ConversationLabel[]
+
     return {
-      classification: data.classification,
-      reason: data.reason,
-      confidence: data.confidence ?? 0.8,
-      labels: (data.labels?.length ? data.labels : detectLabels(ctx.subject, ctx.messages[0]?.body || "")) as ConversationLabel[],
+      classification: lowConfidence ? "needs_review" : data.classification,
+      reason: lowConfidence
+        ? `AI was only ${Math.round(confidence * 100)}% confident about “${data.classification}” — flagged for a human decision.`
+        : data.reason,
+      confidence,
+      labels,
       source: "ai",
     }
   }

@@ -21,7 +21,7 @@ An AI-powered email management dashboard for personal assistants. Every conversa
 | Frontend | React 19 · TypeScript · Vite · React Router · Zustand · Recharts · Tailwind CSS (design tokens) + custom CSS |
 | Backend | Node.js · Express 5 · TypeScript · Zod validation · JWT (access + refresh, httpOnly cookies) |
 | Database | MongoDB via Mongoose |
-| AI | Google Gemini (`gemini-2.5-flash`) with a rule-based fallback |
+| AI | Google Gemini (`gemini-3.5-flash-lite`) with retries and a rule-based fallback |
 
 ## Project structure
 
