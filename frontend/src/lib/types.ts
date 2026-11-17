@@ -140,6 +140,7 @@ export interface DashboardStats {
   sync: { anySyncing: boolean; lastSyncedAt: string | null }
   recentConversations: Conversation[]
   upcomingMeetings: Conversation[]
+  attentionQueue: Conversation[]
 }
 
 export interface ClassificationResult {

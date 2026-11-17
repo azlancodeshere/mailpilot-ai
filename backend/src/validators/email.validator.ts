@@ -30,7 +30,10 @@ export const listConversationsSchema = z.object({
   accountId: z.string().optional(),
   status: z.enum(CONVERSATION_STATUSES).optional(),
   q: z.string().trim().max(200).optional(),
-  includeArchived: z.coerce.boolean().optional(),
+  includeArchived: z
+    .enum(["true", "false", "1", "0"])
+    .transform((value) => value === "true" || value === "1")
+    .optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 })
@@ -60,7 +63,7 @@ export const sendMessageSchema = z.object({
 export const ingestEmailSchema = z.object({
   accountId: z.string().min(1, "Account id is required"),
   from: z.object({
-    name: z.string().trim().min(1).max(120),
+    name: z.string().trim().min(1).max(120).optional(),
     email: z.email(),
   }),
   to: z

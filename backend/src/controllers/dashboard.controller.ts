@@ -11,7 +11,10 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
   const accounts = await Account.find({ owner: ownerId }).sort({ connectedAt: -1 })
   const accountIds = accounts.map((account) => account._id)
 
-  const [segments, totalEmails, unreadEmails, conversations, unreadConversations, recent, meetings] =
+  const attentionSelect =
+    "subject classification classificationReason classificationConfidence status clientAction isImportant unreadCount participants lastMessage lastMessageAt labels aiSummary"
+
+  const [segments, totalEmails, unreadEmails, conversations, unreadConversations, recent, meetings, attention] =
     await Promise.all([
       countSegments(ownerId),
       Email.countDocuments({ account: { $in: accountIds } }),
@@ -22,12 +25,21 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
         .sort({ lastMessageAt: -1 })
         .limit(8)
         .select(
-          "subject classification classificationReason classificationConfidence status clientAction isImportant unreadCount lastMessage lastMessageAt labels aiSummary"
+          "subject classification classificationReason classificationConfidence status clientAction isImportant unreadCount participants lastMessage lastMessageAt labels aiSummary"
         ),
       Conversation.find({ owner: ownerId, isArchived: false, labels: "meeting" })
         .sort({ lastMessageAt: -1 })
         .limit(5)
-        .select("subject classification status importantDates lastMessage lastMessageAt"),
+        .select("subject classification status participants importantDates lastMessage lastMessageAt"),
+      Conversation.find({
+        owner: ownerId,
+        isArchived: false,
+        status: "open",
+        classification: { $in: ["assistant_reply", "needs_review"] },
+      })
+        .sort({ lastMessageAt: -1 })
+        .limit(4)
+        .select(attentionSelect),
     ])
 
   const lastSyncedAt = accounts
@@ -64,6 +76,7 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
       },
       recentConversations: recent,
       upcomingMeetings: meetings,
+      attentionQueue: attention,
     })
   )
 }

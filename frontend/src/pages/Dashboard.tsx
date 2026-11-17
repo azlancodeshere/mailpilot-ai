@@ -118,7 +118,7 @@ export default function Dashboard() {
       <div className="page">
         <PageHeader title="Loading dashboard…" />
         <div className="stat-grid">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {Array.from({ length: 7 }).map((_, index) => (
             <Skeleton key={index} className="stat-skeleton" />
           ))}
         </div>
@@ -168,12 +168,7 @@ export default function Dashboard() {
   const totals = stats?.totals
   const donutData = (stats?.byClassification || []).filter((item) => item.count > 0)
   const donutTotal = donutData.reduce((sum, item) => sum + item.count, 0)
-  const attention = (stats?.recentConversations || []).filter(
-    (conversation) =>
-      conversation.status === "open" &&
-      (conversation.classification === "assistant_reply" ||
-        conversation.classification === "needs_review")
-  )
+  const attention = stats?.attentionQueue || []
 
   return (
     <div className="page">
@@ -236,11 +231,18 @@ export default function Dashboard() {
           onClick={() => openSegment("waiting")}
         />
         <StatCard
+          label="Assistant to reply"
+          value={totals?.assistantToReply ?? 0}
+          icon={Bot}
+          accent="#0f766e"
+          onClick={() => openSegment("assistant")}
+        />
+        <StatCard
           label="Client to reply"
           value={totals?.clientToReply ?? 0}
           icon={UserRound}
           accent="#0f766e"
-          hint="Needs Daniel personally"
+          hint="Needs the client personally"
           onClick={() => openSegment("client")}
         />
       </div>
@@ -387,7 +389,7 @@ export default function Dashboard() {
             <ul className="meeting-list">
               {stats?.upcomingMeetings.map((conversation) => {
                 const date = conversation.importantDates.find((item) => item.date)?.date
-                const sender = conversation.participants[0]
+                const sender = conversation.participants?.[0] ?? null
                 return (
                   <li key={conversation._id}>
                     <button
