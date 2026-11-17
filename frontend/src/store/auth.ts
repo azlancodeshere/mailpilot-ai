@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { authApi, getToken, setToken } from "../lib/api"
+import { authApi, setToken } from "../lib/api"
 import type { User } from "../lib/types"
 
 interface AuthState {
@@ -21,10 +21,6 @@ export const useAuth = create<AuthState>((set) => ({
   status: "idle",
 
   bootstrap: async () => {
-    if (!getToken()) {
-      set({ user: null, status: "ready" })
-      return
-    }
     try {
       const user = await authApi.me()
       set({ user, status: "ready" })
@@ -51,11 +47,7 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    try {
-      await authApi.logout()
-    } catch {
-
-    }
+    await authApi.logout().catch(() => undefined)
     setToken(null)
     set({ user: null, status: "ready" })
   },

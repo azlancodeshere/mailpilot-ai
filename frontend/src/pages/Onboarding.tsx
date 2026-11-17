@@ -289,7 +289,7 @@ export default function Onboarding() {
                   <span>classification complete</span>
                 </div>
                 <div>
-                  <strong>Live</strong>
+                  <strong>Simulated</strong>
                   <span>sync status enabled</span>
                 </div>
               </div>

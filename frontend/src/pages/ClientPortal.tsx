@@ -76,8 +76,8 @@ export default function ClientPortal() {
               item._id === conversation._id ? summary.conversation : item
             )
           )
-        } catch {
-
+        } catch (caught) {
+          push("error", `Summary unavailable — ${errorMessage(caught)}`)
         } finally {
           setSummarizingId(null)
         }
@@ -287,8 +287,8 @@ export default function ClientPortal() {
             Powered by <strong>MailPilot AI</strong> — the minimal view for busy clients.
           </span>
           <span>
-            Classifications change in real time; actions here update your assistant's dashboard
-            instantly.
+            Classifications update as mail arrives; actions here stay in sync with your assistant's
+            dashboard.
           </span>
         </footer>
       </main>
